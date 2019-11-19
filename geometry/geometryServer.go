@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"github.com/guruprasad0110/go-rpc-server-client/pb"
 
@@ -21,6 +22,8 @@ type Server interface {
 	// Stop the gRPC server gracefully.
 	StopServer() error
 
+	Sleep(duration time.Duration) error
+
 	// Methods defined by the server.
 	pb.GeometryServer
 }
@@ -30,13 +33,12 @@ type server struct {
 	laddr      string       // host:port listen address
 	tlsConfig  *tls.Config  // if secure
 	grpcServer *grpc.Server // gRPC server instance of this agent
+	sleep      time.Duration
 }
 
 // NewServer makes a new Server that listens on laddr
 // If tlsConfig is nil, the sever is insecure.
 func NewServer(laddr string, tlsConfig *tls.Config) Server {
-	// Set log flags here so other pkgs can't override in their init().
-	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile | log.LUTC)
 
 	s := &server{
 		laddr:     laddr,
@@ -57,11 +59,17 @@ func NewServer(laddr string, tlsConfig *tls.Config) Server {
 	return s
 }
 
+func (s *server) Sleep(duration time.Duration) error {
+	s.sleep = duration
+	return nil
+}
+
 // Start the server for remote connection
 func (s *server) StartServer() error {
 	// Register the Geometry service with the gRPC server.
+	fmt.Println("DDDD")
 	pb.RegisterGeometryServer(s.grpcServer, s)
-
+	fmt.Println("eeeeeeeeeeeeeeeee")
 	lis, err := net.Listen("tcp", s.laddr)
 	if err != nil {
 		return err
@@ -83,6 +91,9 @@ func (s *server) StopServer() error {
 
 // Start implementing service methods.
 func (s *server) GetArea(ctx context.Context, req *pb.Dimensions) (*pb.Area, error) {
+	if s.sleep != 0 {
+		time.Sleep(s.sleep)
+	}
 	fmt.Println("Start calculating the area")
 	fmt.Println(req)
 	var area int32 = 1
