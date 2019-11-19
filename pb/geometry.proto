@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package pb;
+
+
+service Geometry {
+
+    rpc GetArea(Dimensions) returns (Area) {}
+
+}
+
+message Dimensions {
+  string shape = 1;
+  string unit = 2;
+  repeated int32 dimension = 3;
+}
+
+message Area {
+  float area = 1;
+  string formula = 2;
+  string unit = 3;
+}
+
